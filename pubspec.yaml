@@ -1,0 +1,11 @@
+dependencies:
+  flutter:
+    sdk: flutter
+
+  supabase_flutter: ^2.9.1
+  flutter_dotenv: ^5.2.1
+  provider: ^6.1.5
+  google_sign_in: ^7.1.0
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  flutter_svg: ^2.2.0
