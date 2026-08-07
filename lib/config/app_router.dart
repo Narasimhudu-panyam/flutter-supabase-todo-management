@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/update_password_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/tasks/create_task_screen.dart';
 import '../screens/tasks/edit_task_screen.dart';
@@ -16,6 +17,7 @@ class AppRouter {
   static const login = "/login";
   static const register = "/register";
   static const forgotPassword = "/forgot-password";
+  static const updatePassword = "/update-password";
   static const home = "/home";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -31,6 +33,9 @@ class AppRouter {
 
       case forgotPassword:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+
+      case updatePassword:
+        return MaterialPageRoute(builder: (_) => const UpdatePasswordScreen());
 
       case home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());

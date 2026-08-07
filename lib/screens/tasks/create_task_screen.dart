@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/task_provider.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_textfield.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   const CreateTaskScreen({super.key});
@@ -14,7 +16,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-
   DateTime? _dueDate;
   String _priority = 'medium';
   String _status = 'pending';
@@ -34,12 +35,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
     try {
       await context.read<TaskProvider>().addTask(
-            title: _titleController.text,
-            description: _descriptionController.text,
-            dueDate: _dueDate,
-            priority: _priority,
-            status: _status,
-          );
+        title: _titleController.text,
+        description: _descriptionController.text,
+        dueDate: _dueDate,
+        priority: _priority,
+        status: _status,
+      );
 
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -50,9 +51,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       debugPrint('CREATE TASK ERROR: $error');
       debugPrintStack(stackTrace: stackTrace);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_createTaskErrorMessage(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_createTaskErrorMessage(error))));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -128,6 +129,20 @@ class TaskFormScaffold extends StatelessWidget {
       initialDate: dueDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+            primary: const Color(0xFF7C3AED),
+            onPrimary: Colors.white,
+            surface: const Color(0xFF111827),
+            onSurface: Colors.white,
+          ),
+          dialogTheme: const DialogThemeData(
+            backgroundColor: Color(0xFF0F172A),
+          ),
+        ),
+        child: child!,
+      ),
     );
     if (date != null) onDate(date);
   }
@@ -137,101 +152,144 @@ class TaskFormScaffold extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
-        child: Form(
-          key: formKey,
-          child: ListView(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: .08)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .18),
+                  blurRadius: 22,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
             padding: const EdgeInsets.all(20),
-            children: [
-              TextFormField(
-                controller: titleController,
-                autofocus: true,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Title *',
-                  prefixIcon: Icon(Icons.title),
-                ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'A title is required'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: descriptionController,
-                minLines: 3,
-                maxLines: 5,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  alignLabelWithHint: true,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.event_outlined),
-                title: Text(
-                  dueDate == null
-                      ? 'Set a due date'
-                      : 'Due ${MaterialLocalizations.of(context).formatMediumDate(dueDate!)}',
-                ),
-                trailing: dueDate == null
-                    ? const Icon(Icons.chevron_right)
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => onDate(null),
+            child: Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  CustomTextField(
+                    controller: titleController,
+                    label: 'Title *',
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'A title is required'
+                        : null,
+                    prefixIcon: const Icon(Icons.title_outlined),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: descriptionController,
+                    minLines: 3,
+                    maxLines: 5,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      alignLabelWithHint: true,
+                      prefixIcon: const Icon(Icons.description_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () => _pickDate(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 18,
+                        horizontal: 16,
                       ),
-                onTap: () => _pickDate(context),
-              ),
-              const Divider(),
-              DropdownButtonFormField<String>(
-                initialValue: priority,
-                decoration: const InputDecoration(labelText: 'Priority'),
-                items: const ['low', 'medium', 'high']
-                    .map(
-                      (value) => DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(18),
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) onPriority(value);
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: status,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  prefixIcon: Icon(Icons.flag_outlined),
-                ),
-                items: const ['pending', 'in_progress', 'completed']
-                    .map(
-                      (value) => DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.event_outlined,
+                            color: Colors.white70,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              dueDate == null
+                                  ? 'Set a due date'
+                                  : 'Due ${MaterialLocalizations.of(context).formatMediumDate(dueDate!)}',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          if (dueDate != null)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.white70,
+                              ),
+                              onPressed: () => onDate(null),
+                            )
+                          else
+                            const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white70,
+                            ),
+                        ],
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) onStatus(value);
-                },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: priority,
+                    decoration: const InputDecoration(
+                      labelText: 'Priority',
+                      prefixIcon: Icon(Icons.flag_outlined),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'low', child: Text('Low')),
+                      DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                      DropdownMenuItem(value: 'high', child: Text('High')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) onPriority(value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: status,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      prefixIcon: Icon(Icons.task_alt_outlined),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'pending',
+                        child: Text('Pending'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'in_progress',
+                        child: Text('In progress'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'completed',
+                        child: Text('Completed'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) onStatus(value);
+                    },
+                  ),
+                  const SizedBox(height: 28),
+                  CustomButton(
+                    text: saving ? 'Saving…' : 'Save task',
+                    loading: saving,
+                    icon: const Icon(Icons.save_outlined),
+                    onPressed: onSave,
+                  ),
+                ],
               ),
-              const SizedBox(height: 28),
-              FilledButton.icon(
-                onPressed: saving ? null : onSave,
-                icon: saving
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save_outlined),
-                label: Text(saving ? 'Saving...' : 'Save task'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

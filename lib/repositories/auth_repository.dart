@@ -36,6 +36,10 @@ class AuthRepository {
     return _authService.resetPassword(email);
   }
 
+  Future<UserResponse> updatePassword(String password) {
+    return _authService.updatePassword(password);
+  }
+
   Future<bool> isLoggedIn() {
     return _authService.isLoggedIn();
   }

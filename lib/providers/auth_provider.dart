@@ -87,6 +87,21 @@ class AuthProvider extends ChangeNotifier {
     return _repository.resetPassword(email);
   }
 
+  Future<UserResponse> updatePassword(String password) async {
+    if (_isLoading) {
+      throw StateError('An authentication request is already in progress.');
+    }
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      return await _repository.updatePassword(password);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> isLoggedIn() {
     return _repository.isLoggedIn();
   }
