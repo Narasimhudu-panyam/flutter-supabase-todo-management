@@ -4,6 +4,11 @@ import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/tasks/create_task_screen.dart';
+import '../screens/tasks/edit_task_screen.dart';
+import '../screens/tasks/task_details_screen.dart';
+import '../screens/tasks/task_history_screen.dart';
+import '../models/task_model.dart';
 import '../screens/splash/splash_screen.dart';
 
 class AppRouter {
@@ -29,6 +34,10 @@ class AppRouter {
 
       case home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
+      case '/tasks/create': return MaterialPageRoute(builder: (_) => const CreateTaskScreen());
+      case '/tasks/edit': return MaterialPageRoute(builder: (_) => EditTaskScreen(task: settings.arguments! as TaskModel));
+      case '/details': return MaterialPageRoute(builder: (_) => TaskDetailsScreen(task: settings.arguments! as TaskModel));
+      case '/history': return MaterialPageRoute(builder: (_) => TaskHistoryScreen(taskId: settings.arguments! as String));
 
       default:
         return MaterialPageRoute(builder: (_) => const SplashScreen());

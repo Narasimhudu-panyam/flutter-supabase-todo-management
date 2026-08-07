@@ -12,40 +12,59 @@ class AuthProvider extends ChangeNotifier {
 
   User? get currentUser => Supabase.instance.client.auth.currentUser;
 
-  Future<bool> login({required String email, required String password}) async {
+  Future<AuthResponse> login({
+    required String email,
+    required String password,
+  }) async {
+    if (_isLoading) {
+      throw StateError('An authentication request is already in progress.');
+    }
+
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _repository.signIn(email: email, password: password);
-
-      return true;
-    } on AuthException {
-      rethrow;
+      return await _repository.signIn(email: email, password: password);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> register({
-    required String fullName,
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> loginWithGoogle() async {
+    if (_isLoading) {
+      throw StateError('An authentication request is already in progress.');
+    }
+
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _repository.signUp(
+      return await _repository.signInWithGoogle();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<AuthResponse> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    if (_isLoading) {
+      throw StateError('An authentication request is already in progress.');
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      return await _repository.signUp(
         fullName: fullName,
         email: email,
         password: password,
       );
-
-      return true;
-    } on AuthException {
-      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

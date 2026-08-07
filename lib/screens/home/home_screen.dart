@@ -1,84 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../../models/task_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<TaskProvider>().startListening();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final taskProvider = context.watch<TaskProvider>();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Tasks"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              final authProvider = context.read<AuthProvider>();
-
-              await authProvider.logout();
-
-              if (!mounted) return;
-
-              navigator.pushReplacementNamed('/login');
-            },
-          ),
-        ],
-      ),
-
-      body: taskProvider.tasks.isEmpty
-          ? const Center(
-              child: Text("No Tasks Yet", style: TextStyle(fontSize: 18)),
-            )
-          : ListView.builder(
-              itemCount: taskProvider.tasks.length,
-              itemBuilder: (context, index) {
-                final task = taskProvider.tasks[index];
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: ListTile(
-                    title: Text(task.title),
-                    subtitle: Text(task.description ?? ""),
-                    trailing: Icon(
-                      task.isCompleted
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                    ),
-                  ),
-                );
-              },
-            ),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add Task Dialog (next step)
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
+import '../../widgets/empty_state.dart';
+import '../../widgets/statistics_card.dart';
+import '../../widgets/task_card.dart';
+import '../../widgets/task_search_bar.dart';
+class HomeScreen extends StatefulWidget { const HomeScreen({super.key}); @override State<HomeScreen> createState() => _HomeScreenState(); }
+class _HomeScreenState extends State<HomeScreen> { String _query='',_completion='All',_priority='All',_status='All',_dateFilter='Any time',_sort='Newest'; @override void initState(){super.initState();WidgetsBinding.instance.addPostFrameCallback((_) {if(mounted)context.read<TaskProvider>().startListening();});}
+List<TaskModel> _visible(List<TaskModel> all){final list=all.where((t){final q=_query.toLowerCase();final due=t.dueDate;final matchesDate=_dateFilter=='Any time'||(due!=null&&(_dateFilter=='Today'?DateUtils.isSameDay(due,DateTime.now()):due.isBefore(DateTime.now().add(const Duration(days:7)))&&due.isAfter(DateTime.now().subtract(const Duration(days:1)))));return(q.isEmpty||t.title.toLowerCase().contains(q)||(t.description?.toLowerCase().contains(q)??false))&&(_completion=='All'||(_completion=='Pending'?!t.isCompleted:t.isCompleted))&&(_priority=='All'||t.priority.toLowerCase()==_priority.toLowerCase())&&(_status=='All'||t.status==_status)&&matchesDate;}).toList();list.sort((a,b){if(a.isCompleted!=b.isCompleted)return a.isCompleted?1:-1;return switch(_sort){'Oldest'=>a.createdAt.compareTo(b.createdAt),'Priority'=>_rank(b).compareTo(_rank(a)),'Due date'=>(a.dueDate??DateTime(9999)).compareTo(b.dueDate??DateTime(9999)),'Alphabetical'=>a.title.toLowerCase().compareTo(b.title.toLowerCase()),_=>b.createdAt.compareTo(a.createdAt)};});return list;}int _rank(TaskModel t)=>const{'high':3,'medium':2,'low':1}[t.priority.toLowerCase()]??0;
+Future<void> _delete(TaskModel task)async{try{await context.read<TaskProvider>().deleteTask(task.id);if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('"${task.title}" deleted')));}catch(_){if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Could not delete task')));}}
+@override Widget build(BuildContext context){final p=context.watch<TaskProvider>();final tasks=p.tasks;final visible=_visible(tasks);final statuses=['All',...{for(final task in tasks)task.status}];final complete=tasks.where((t)=>t.isCompleted).length;return Scaffold(appBar:AppBar(title:const Text('My Tasks',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold)),flexibleSpace:Container(decoration:const BoxDecoration(gradient:LinearGradient(colors:[Color(0xff6750A4),Color(0xff246B92)]))),actions:[IconButton(color:Colors.white,onPressed:()async{await context.read<AuthProvider>().logout();if(mounted)Navigator.pushReplacementNamed(context,'/login');},icon:const Icon(Icons.logout))]),body:RefreshIndicator(onRefresh:()=>context.read<TaskProvider>().loadTasks(),child:p.isLoading&&tasks.isEmpty?const Center(child:CircularProgressIndicator()):p.error!=null&&tasks.isEmpty?Center(child:Text(p.error!)):ListView(padding:const EdgeInsets.fromLTRB(16,16,16,100),children:[SizedBox(height:108,child:ListView(scrollDirection:Axis.horizontal,children:[StatisticsCard(label:'Total Tasks',value:'${tasks.length}',icon:Icons.task_alt,color:Colors.indigo),const SizedBox(width:10),StatisticsCard(label:'Completed',value:'$complete',icon:Icons.check_circle,color:Colors.green),const SizedBox(width:10),StatisticsCard(label:'Pending',value:'${tasks.length-complete}',icon:Icons.pending_actions,color:Colors.orange),const SizedBox(width:10),StatisticsCard(label:'Completion',value:tasks.isEmpty?'0%':'${(complete/tasks.length*100).round()}%',icon:Icons.pie_chart,color:Colors.purple)])),const SizedBox(height:18),TaskSearchBar(onChanged:(v)=>setState(()=>_query=v)),const SizedBox(height:12),SingleChildScrollView(scrollDirection:Axis.horizontal,child:Row(children:[for(final v in ['All','Pending','Completed'])Padding(padding:const EdgeInsets.only(right:8),child:ChoiceChip(label:Text(v),selected:_completion==v,onSelected:(_)=>setState(()=>_completion=v))),DropdownButton(value:_priority,items:['All','Low','Medium','High'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>_priority=v!)),const SizedBox(width:10),DropdownButton(value:_status,items:statuses.map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>_status=v!)),const SizedBox(width:10),DropdownButton(value:_dateFilter,items:['Any time','Today','This Week'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>_dateFilter=v!)),const SizedBox(width:10),DropdownButton(value:_sort,items:['Newest','Oldest','Priority','Due date','Alphabetical'].map((v)=>DropdownMenuItem(value:v,child:Text(v))).toList(),onChanged:(v)=>setState(()=>_sort=v!))])),const SizedBox(height:16),if(visible.isEmpty)SizedBox(height:300,child:EmptyState(filtered:tasks.isNotEmpty))else...visible.map((t)=>TaskCard(task:t,onTap:()=>Navigator.pushNamed(context,'/details',arguments:t),onToggle:()=>context.read<TaskProvider>().toggleCompleted(t),onDelete:()=>_delete(t)))])),floatingActionButton:FloatingActionButton.extended(onPressed:()=>Navigator.pushNamed(context,'/tasks/create'),icon:const Icon(Icons.add),label:const Text('Add task')));}}

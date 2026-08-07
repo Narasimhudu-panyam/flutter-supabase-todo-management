@@ -1,0 +1,2 @@
+import 'package:flutter/material.dart';
+class TaskSearchBar extends StatelessWidget { final ValueChanged<String> onChanged; const TaskSearchBar({super.key, required this.onChanged}); @override Widget build(BuildContext context) => TextField(onChanged: onChanged, decoration: InputDecoration(hintText: 'Search tasks', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: .5), border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(16)))); }

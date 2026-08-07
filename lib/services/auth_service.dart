@@ -1,15 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'supabase_service.dart';
-
 class AuthService {
-  final SupabaseClient _client = SupabaseService.client;
+  final SupabaseClient _client = Supabase.instance.client;
 
-  User? get currentUser => _client.auth.currentUser;
-
-  Session? get currentSession => _client.auth.currentSession;
-
-  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
+  /// Redirect URI for Flutter Android/iOS
+  static const String _googleRedirectUrl =
+      'io.supabase.flutter://login-callback';
 
   Future<AuthResponse> signUp({
     required String email,
@@ -28,6 +24,14 @@ class AuthService {
     required String password,
   }) {
     return _client.auth.signInWithPassword(email: email, password: password);
+  }
+
+  Future<bool> signInWithGoogle() {
+    return _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: _googleRedirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
+    );
   }
 
   Future<void> signOut() {

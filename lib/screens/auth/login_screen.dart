@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
@@ -23,8 +26,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
 
+  late final StreamSubscription<AuthState> _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.signedIn && mounted) {
+        Navigator.pushReplacementNamed(context, AppRouter.home);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _authSubscription.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -36,22 +52,57 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = context.read<AuthProvider>();
 
     try {
-      final success = await authProvider.login(
+      final response = await authProvider.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       if (!mounted) return;
 
-      if (success) {
+      if (response.session != null) {
         Navigator.pushReplacementNamed(context, '/home');
       }
-    } catch (e) {
+    } on AuthException catch (error, stackTrace) {
+      debugPrint('Sign-in failed: ${error.message}\n$stackTrace');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Unexpected sign-in failure: $error\n$stackTrace');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(const SnackBar(content: Text('Unable to sign in. Try again.')));
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    if (context.read<AuthProvider>().isLoading) return;
+
+    try {
+      final launched = await context.read<AuthProvider>().loginWithGoogle();
+      if (!mounted || launched) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open Google sign-in. Please try again.')),
+      );
+    } on AuthException catch (error, stackTrace) {
+      debugPrint('Google sign-in failed: ${error.message}\n$stackTrace');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google sign-in is unavailable. Please try again later.')),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Google sign-in failed: $error\n$stackTrace');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to start Google sign-in. Please try again.')),
+      );
     }
   }
 
@@ -147,11 +198,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 30),
 
                 OutlinedButton.icon(
-                  onPressed: () {
-                    // Google Sign-In will be connected in the next authentication phase.
-                  },
+                  onPressed: authProvider.isLoading ? null : _loginWithGoogle,
                   icon: const Icon(Icons.login),
-                  label: const Text("Continue with Google"),
+                  label: authProvider.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Continue with Google"),
                 ),
 
                 const SizedBox(height: 30),

@@ -1,1 +1,7 @@
-// Task Details
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../models/task_model.dart';
+import '../../providers/task_provider.dart';
+import '../../widgets/task_card.dart';
+class TaskDetailsScreen extends StatelessWidget { final TaskModel task; const TaskDetailsScreen({super.key,required this.task}); @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:const Text('Task details'),actions:[IconButton(onPressed:()=>Navigator.pushNamed(context,'/tasks/edit',arguments:task),icon:const Icon(Icons.edit_outlined))]),body:ListView(padding:const EdgeInsets.all(20),children:[Text(task.title,style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.bold)),if(task.description?.isNotEmpty==true)...[const SizedBox(height:12),Text(task.description!)],const SizedBox(height:22),Wrap(spacing:8,children:[PriorityChip(priority:task.priority),StatusChip(status:task.status)]),const SizedBox(height:22),ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.event),title:const Text('Due date'),subtitle:Text(task.dueDate==null?'No due date':DateFormat.yMMMMd().format(task.dueDate!))),ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.access_time),title:const Text('Created'),subtitle:Text(DateFormat.yMMMMd().add_jm().format(task.createdAt))),SwitchListTile(contentPadding:EdgeInsets.zero,value:task.isCompleted,onChanged:(_)=>context.read<TaskProvider>().toggleCompleted(task),title:const Text('Completed')),TextButton.icon(onPressed:()=>Navigator.pushNamed(context,'/history',arguments:task.id),icon:const Icon(Icons.history),label:const Text('View history'))])); }

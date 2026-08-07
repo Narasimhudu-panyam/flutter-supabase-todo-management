@@ -1,1 +1,6 @@
-// Task History
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../providers/task_history_provider.dart';
+class TaskHistoryScreen extends StatefulWidget { final String taskId; const TaskHistoryScreen({super.key, required this.taskId}); @override State<TaskHistoryScreen> createState() => _TaskHistoryScreenState(); }
+class _TaskHistoryScreenState extends State<TaskHistoryScreen> { @override void initState() { super.initState(); WidgetsBinding.instance.addPostFrameCallback((_) => context.read<TaskHistoryProvider>().loadHistory(widget.taskId)); } @override Widget build(BuildContext context) { final provider = context.watch<TaskHistoryProvider>(); return Scaffold(appBar: AppBar(title: const Text('Task history')), body: provider.isLoading ? const Center(child: CircularProgressIndicator()) : provider.history.isEmpty ? const Center(child: Text('No history yet')) : ListView.builder(itemCount: provider.history.length, itemBuilder: (context, index) { final entry = provider.history[index]; return ListTile(leading: const Icon(Icons.timeline), title: Text(entry.action[0].toUpperCase() + entry.action.substring(1)), subtitle: Text(DateFormat.yMMMd().add_jm().format(entry.changedAt))); })); } }

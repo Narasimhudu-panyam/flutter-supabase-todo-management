@@ -1,9 +1,11 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../services/auth_service.dart';
 
 class AuthRepository {
   final AuthService _authService = AuthService();
 
-  Future signUp({
+  Future<AuthResponse> signUp({
     required String email,
     required String password,
     required String fullName,
@@ -15,8 +17,15 @@ class AuthRepository {
     );
   }
 
-  Future signIn({required String email, required String password}) {
+  Future<AuthResponse> signIn({
+    required String email,
+    required String password,
+  }) {
     return _authService.signIn(email: email, password: password);
+  }
+
+  Future<bool> signInWithGoogle() {
+    return _authService.signInWithGoogle();
   }
 
   Future<void> signOut() {

@@ -12,6 +12,8 @@ class TodoApp extends StatelessWidget {
       title: 'Flutter Supabase Todo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.generateRoute,
     );

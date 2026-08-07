@@ -2,25 +2,11 @@ import '../models/task_model.dart';
 import '../services/task_service.dart';
 
 class TaskRepository {
-  final TaskService _taskService = TaskService();
-
-  Future<List<TaskModel>> getTasks() {
-    return _taskService.getTasks();
-  }
-
-  Future<void> addTask({required String title, String? description}) {
-    return _taskService.addTask(title: title, description: description);
-  }
-
-  Future<void> updateTask(TaskModel task) {
-    return _taskService.updateTask(task);
-  }
-
-  Future<void> deleteTask(String id) {
-    return _taskService.deleteTask(id);
-  }
-
-  Stream<List<TaskModel>> watchTasks() {
-    return _taskService.watchTasks();
-  }
+  final TaskService _service = TaskService();
+  Future<List<TaskModel>> getTasks() => _service.getTasks();
+  Stream<List<TaskModel>> watchTasks() => _service.watchTasks();
+  Future<void> addTask({required String title, String? description, DateTime? dueDate, required String priority, required String status}) =>
+      _service.addTask(title: title, description: description, dueDate: dueDate, priority: priority, status: status);
+  Future<void> updateTask(TaskModel task) => _service.updateTask(task);
+  Future<void> deleteTask(String id) => _service.deleteTask(id);
 }
