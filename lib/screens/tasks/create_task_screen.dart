@@ -17,6 +17,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   DateTime? _dueDate;
+  DateTime? _reminderAt;
   String _priority = 'medium';
   String _status = 'pending';
   bool _isSaving = false;
@@ -38,6 +39,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         title: _titleController.text,
         description: _descriptionController.text,
         dueDate: _dueDate,
+        reminderAt: _reminderAt,
         priority: _priority,
         status: _status,
       );
@@ -81,10 +83,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       titleController: _titleController,
       descriptionController: _descriptionController,
       dueDate: _dueDate,
+      reminderAt: _reminderAt,
       priority: _priority,
       status: _status,
       saving: _isSaving,
       onDate: (value) => setState(() => _dueDate = value),
+      onReminder: (value) => setState(() => _reminderAt = value),
       onPriority: (value) => setState(() => _priority = value),
       onStatus: (value) => setState(() => _status = value),
       onSave: _saveTask,
@@ -101,10 +105,12 @@ class TaskFormScaffold extends StatelessWidget {
     required this.titleController,
     required this.descriptionController,
     required this.dueDate,
+    this.reminderAt,
     required this.priority,
     required this.status,
     required this.saving,
     required this.onDate,
+    required this.onReminder,
     required this.onPriority,
     required this.onStatus,
     required this.onSave,
@@ -115,10 +121,12 @@ class TaskFormScaffold extends StatelessWidget {
   final TextEditingController titleController;
   final TextEditingController descriptionController;
   final DateTime? dueDate;
+  final DateTime? reminderAt;
   final String priority;
   final String status;
   final bool saving;
   final ValueChanged<DateTime?> onDate;
+  final ValueChanged<DateTime?> onReminder;
   final ValueChanged<String> onPriority;
   final ValueChanged<String> onStatus;
   final VoidCallback onSave;
@@ -129,22 +137,51 @@ class TaskFormScaffold extends StatelessWidget {
       initialDate: dueDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-            primary: const Color(0xFF7C3AED),
-            onPrimary: Colors.white,
-            surface: const Color(0xFF111827),
-            onSurface: Colors.white,
-          ),
-          dialogTheme: const DialogThemeData(
-            backgroundColor: Color(0xFF0F172A),
-          ),
-        ),
-        child: child!,
-      ),
+      builder: (context, child) => _datePickerTheme(context, child!),
     );
     if (date != null) onDate(date);
+  }
+
+  Future<void> _pickReminder(BuildContext context) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: reminderAt ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime(2100),
+      builder: (context, child) => _datePickerTheme(context, child!),
+    );
+    if (date != null && context.mounted) {
+      final time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(reminderAt ?? DateTime.now()),
+        builder: (context, child) => _datePickerTheme(context, child!),
+      );
+      if (time != null) {
+        final dt = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          time.hour,
+          time.minute,
+        );
+        onReminder(dt);
+      }
+    }
+  }
+
+  Widget _datePickerTheme(BuildContext context, Widget child) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: Theme.of(context).colorScheme.copyWith(
+          primary: const Color(0xFF7C3AED),
+          onPrimary: Colors.white,
+          surface: const Color(0xFF111827),
+          onSurface: Colors.white,
+        ),
+        dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF0F172A)),
+      ),
+      child: child,
+    );
   }
 
   @override
@@ -186,10 +223,10 @@ class TaskFormScaffold extends StatelessWidget {
                     minLines: 3,
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Description',
                       alignLabelWithHint: true,
-                      prefixIcon: const Icon(Icons.description_outlined),
+                      prefixIcon: Icon(Icons.description_outlined),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -229,6 +266,53 @@ class TaskFormScaffold extends StatelessWidget {
                                 color: Colors.white70,
                               ),
                               onPressed: () => onDate(null),
+                            )
+                          else
+                            const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white70,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () => _pickReminder(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 18,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.notifications_active_outlined,
+                            color: Colors.white70,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              reminderAt == null
+                                  ? 'Set a reminder'
+                                  : 'Reminder ${MaterialLocalizations.of(context).formatMediumDate(reminderAt!)} ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(reminderAt!))}',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          if (reminderAt != null)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.white70,
+                              ),
+                              onPressed: () => onReminder(null),
                             )
                           else
                             const Icon(

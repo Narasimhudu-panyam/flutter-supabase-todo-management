@@ -20,16 +20,16 @@ class _TodoAppState extends State<TodoApp> {
   @override
   void initState() {
     super.initState();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen(
-      (state) {
-        if (state.event == AuthChangeEvent.passwordRecovery) {
-          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            AppRouter.updatePassword,
-            (route) => false,
-          );
-        }
-      },
-    );
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      state,
+    ) {
+      if (state.event == AuthChangeEvent.passwordRecovery) {
+        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          AppRouter.updatePassword,
+          (route) => false,
+        );
+      }
+    });
   }
 
   @override

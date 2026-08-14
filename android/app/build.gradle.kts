@@ -8,10 +8,11 @@ android {
     namespace = "com.example.todo_management_app"
     // Flutter 3.44.8 targets Android API 36. Keep this explicit so Gradle
     // cannot compile the app against a stale SDK value (for example API 33).
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -23,7 +24,7 @@ android {
         // Flutter 3.44.8's Android baseline is API 24; API 36 satisfies the
         // AndroidX and fluttertoast AAR metadata requirements.
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -35,6 +36,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 kotlin {

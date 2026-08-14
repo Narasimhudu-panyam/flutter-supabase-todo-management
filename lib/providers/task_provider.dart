@@ -53,7 +53,9 @@ class TaskProvider extends ChangeNotifier {
   Future<void> startListening() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      debugPrint('TASK REALTIME: not started because there is no signed-in user');
+      debugPrint(
+        'TASK REALTIME: not started because there is no signed-in user',
+      );
       return;
     }
 
@@ -106,6 +108,7 @@ class TaskProvider extends ChangeNotifier {
     required String title,
     String? description,
     DateTime? dueDate,
+    DateTime? reminderAt,
     required String priority,
     required String status,
   }) async {
@@ -113,6 +116,7 @@ class TaskProvider extends ChangeNotifier {
       title: title,
       description: description,
       dueDate: dueDate,
+      reminderAt: reminderAt,
       priority: priority,
       status: status,
     );

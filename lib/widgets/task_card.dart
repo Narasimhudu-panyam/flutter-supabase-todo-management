@@ -212,6 +212,21 @@ class TaskCard extends StatelessWidget {
                                   value:
                                       'Due ${DateFormat.MMMd().format(task.dueDate!)}',
                                 ),
+                              if (task.reminderAt != null)
+                                _DateLabel(
+                                  icon: Icons.notifications_active,
+                                  value: DateFormat(
+                                    'MMM d, h:mm a',
+                                  ).format(task.reminderAt!),
+                                ),
+                              _DateLabel(
+                                icon: task.syncStatus == 'synced'
+                                    ? Icons.cloud_done
+                                    : Icons.cloud_upload,
+                                value: task.syncStatus == 'synced'
+                                    ? 'Synced'
+                                    : 'Syncing...',
+                              ),
                               _DateLabel(
                                 icon: Icons.schedule,
                                 value: DateFormat.MMMd().format(task.createdAt),

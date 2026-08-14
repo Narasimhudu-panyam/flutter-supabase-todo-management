@@ -39,10 +39,23 @@ class AppRouter {
 
       case home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
-      case '/tasks/create': return MaterialPageRoute(builder: (_) => const CreateTaskScreen());
-      case '/tasks/edit': return MaterialPageRoute(builder: (_) => EditTaskScreen(task: settings.arguments! as TaskModel));
-      case '/details': return MaterialPageRoute(builder: (_) => TaskDetailsScreen(task: settings.arguments! as TaskModel));
-      case '/history': return MaterialPageRoute(builder: (_) => TaskHistoryScreen(taskId: settings.arguments! as String));
+      case '/tasks/create':
+        return MaterialPageRoute(builder: (_) => const CreateTaskScreen());
+      case '/tasks/edit':
+        return MaterialPageRoute(
+          builder: (_) =>
+              EditTaskScreen(task: settings.arguments! as TaskModel),
+        );
+      case '/details':
+        return MaterialPageRoute(
+          builder: (_) =>
+              TaskDetailsScreen(task: settings.arguments! as TaskModel),
+        );
+      case '/history':
+        return MaterialPageRoute(
+          builder: (_) =>
+              TaskHistoryScreen(taskId: settings.arguments! as String),
+        );
 
       default:
         return MaterialPageRoute(builder: (_) => const SplashScreen());

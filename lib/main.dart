@@ -10,6 +10,9 @@ import 'providers/profile_provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/task_history_provider.dart';
 
+import 'services/notification_service.dart';
+import 'services/sync_manager.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -19,6 +22,11 @@ Future<void> main() async {
     url: SupabaseConfig.url,
     publishableKey: SupabaseConfig.publishableKey,
   );
+
+  await NotificationService().init();
+  await NotificationService().requestPermission();
+  SyncManager().init();
+
   runApp(
     MultiProvider(
       providers: [

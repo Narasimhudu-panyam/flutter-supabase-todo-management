@@ -1,5 +1,38 @@
 # Flutter Supabase To-Do App
 
+## Architecture Updates (Offline-First)
+
+This application has been updated to support offline-first capabilities, local task reminders, and robust background synchronization.
+
+### Offline-First & Sync
+- **Local Database**: Powered by `sqflite`. The UI reads and writes to the local SQLite database first, allowing full offline access and fast interactions.
+- **Sync Queue**: A dedicated `sync_queue` table tracks pending CRUD operations when offline.
+- **SyncManager**: Uses `connectivity_plus` to automatically detect when internet is restored and processes pending queue items against Supabase.
+- **Conflict Resolution**: Implements a Last-Write-Wins strategy based on `updated_at` timestamps to safely merge remote realtime updates with local state.
+
+### Task Reminders
+- Powered by `flutter_local_notifications` and `timezone`.
+- Users can set precise reminder dates/times (in device local timezone) for tasks.
+- Background alarms trigger native push notifications, even if the app is closed.
+
+### Security
+- Sensitive tokens are securely managed natively by `supabase_flutter`.
+- Secure dependencies like `flutter_secure_storage` are included for any future client-side sensitive persistence requirements.
+
+## Testing & Build
+
+To test the application:
+```bash
+flutter test
+```
+
+To build a release APK:
+```bash
+flutter build apk --release
+```
+
+---
+
 ## Android Google Sign-In setup
 
 This app uses Supabase's browser OAuth flow. It does **not** use the native

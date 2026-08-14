@@ -18,6 +18,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   late final TextEditingController _title;
   late final TextEditingController _description;
   late DateTime? _dueDate;
+  late DateTime? _reminderAt;
   late String _priority, _status;
   bool _saving = false;
 
@@ -27,6 +28,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     _title = TextEditingController(text: widget.task.title);
     _description = TextEditingController(text: widget.task.description);
     _dueDate = widget.task.dueDate;
+    _reminderAt = widget.task.reminderAt;
     _priority = widget.task.priority;
     _status = widget.task.status;
   }
@@ -49,6 +51,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
           description: _description.text.trim(),
           dueDate: _dueDate,
           clearDueDate: _dueDate == null,
+          reminderAt: _reminderAt,
+          clearReminderAt: _reminderAt == null,
           priority: _priority,
           status: _status,
         ),
@@ -77,10 +81,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       titleController: _title,
       descriptionController: _description,
       dueDate: _dueDate,
+      reminderAt: _reminderAt,
       priority: _priority,
       status: _status,
       saving: _saving,
       onDate: (value) => setState(() => _dueDate = value),
+      onReminder: (value) => setState(() => _reminderAt = value),
       onPriority: (value) => setState(() => _priority = value),
       onStatus: (value) => setState(() => _status = value),
       onSave: _save,

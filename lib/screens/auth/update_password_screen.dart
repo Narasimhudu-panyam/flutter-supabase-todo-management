@@ -29,19 +29,35 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await context.read<AuthProvider>().updatePassword(_passwordController.text);
+      await context.read<AuthProvider>().updatePassword(
+        _passwordController.text,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated. You can now sign in with email and password.')),
+        const SnackBar(
+          content: Text(
+            'Password updated. You can now sign in with email and password.',
+          ),
+        ),
       );
-      Navigator.pushNamedAndRemoveUntil(context, AppRouter.home, (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRouter.home,
+        (route) => false,
+      );
     } on AuthException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to update password. Please request a new reset link.')),
+        const SnackBar(
+          content: Text(
+            'Unable to update password. Please request a new reset link.',
+          ),
+        ),
       );
     }
   }
@@ -69,7 +85,9 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Confirm new password'),
+                decoration: const InputDecoration(
+                  labelText: 'Confirm new password',
+                ),
                 validator: (value) => value != _passwordController.text
                     ? 'Passwords do not match'
                     : null,
